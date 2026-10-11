@@ -1,0 +1,70 @@
+html { scroll-behavior: smooth; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  html { scroll-behavior: auto; }
+}
+
+.btn-interactive {
+  transition: all 0.2s ease-out;
+}
+
+.btn-interactive:hover {
+  transform: scale(1.05);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.btn-interactive:active {
+  transform: scale(0.95);
+}
+
+.card-interactive {
+  transition: all 0.3s ease-out;
+  border: 1px solid transparent;
+  --border-lightness: 40%;
+}
+
+.dark .card-interactive {
+  --border-lightness: 60%;
+}
+
+.card-interactive:hover {
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  filter: brightness(0.98);
+}
+
+.card-interactive[class*="mylo"]:hover,
+.card-interactive[class*="white"]:hover,
+.card-interactive[class*="gray-"]:hover {
+  border-color: hsl(200, 90%, var(--border-lightness));
+}
+
+.card-interactive[class*="accent"]:hover {
+  border-color: hsl(270, 80%, var(--border-lightness));
+}
+
+.dark .card-interactive:hover {
+  filter: brightness(1.05);
+}
+
+.gradient-bg {
+  background: linear-gradient(135deg, #0ea5e9 0%, #a855f7 100%);
+}
+
+.result-card {
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.1) 0%, rgba(168, 85, 247, 0.1) 100%);
+}
+
+.input-field {
+  transition: all 0.2s ease-out;
+}
+
+.input-field:focus {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.15);
+}
+

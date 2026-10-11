@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MyLo Crypto ROI Calculator</title>
+
+  <!-- Essential CDN Libraries -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            mylo: {
+              50: '#f0f9ff',
+              100: '#e0f2fe',
+              200: '#bae6fd',
+              300: '#7dd3fc',
+              400: '#38bdf8',
+              500: '#0ea5e9',
+              600: '#0284c7',
+              700: '#0369a1',
+              800: '#075985',
+              900: '#0c4a6e'
+            },
+            accent: {
+              50: '#faf5ff',
+              100: '#f3e8ff',
+              200: '#e9d5ff',
+              300: '#d8b4fe',
+              400: '#c084fc',
+              500: '#a855f7',
+              600: '#9333ea',
+              700: '#7c3aed',
+              800: '#6b21a8',
+              900: '#581c87'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+  <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+
+  <!-- Preline UI Components -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/preline@2.0.3/dist/preline.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/preline@2.0.3/dist/preline.js"></script>
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-300" x-data="calculatorApp()">
+  
+  <!-- Progress bar -->
+  <div class="fixed top-0 left-0 h-1 gradient-bg z-[60] transition-all duration-300 ease-out" id="progressBar"></div>
+
+  <!-- Floating Header -->
+  <header class="fixed top-0 left-0 right-0 z-50 backdrop-blur bg-gray-50/90 dark:bg-gray-900/90 border-b border-mylo-500/20 dark:border-mylo-600/20">
+    <nav class="max-w-7xl mx-auto px-6 py-4">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 gradient-bg rounded-lg flex items-center justify-center">
+            <span class="text-white font-bold text-lg">M</span>
+          </div>
+          <h1 class="text-xl font-bold text-mylo-700 dark:text-mylo-300">MyLo Crypto ROI Calculator</h1>
+        </div>
+        
+        <div class="flex items-center space-x-6">
+          <button onclick="toggleDarkMode()" class="btn-interactive p-2 rounded-lg bg-mylo-100 dark:bg-mylo-800 text-mylo-600 dark:text-mylo-300 hover:bg-mylo-200 dark:hover:bg-mylo-700 transition-all">
+            <i data-lucide="sun" id="sunIcon" class="w-5 h-5" style="display:none;"></i>
+            <i data-lucide="moon" id="moonIcon" class="w-5 h-5" style="display:block;"></i>
+          </button>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <!-- Main Content -->
+  <main class="min-h-screen pt-24 pb-16">
+    <!-- Hero Section -->
+    <section class="py-20 gradient-bg text-white" data-aos="fade-up">
+      <div class="max-w-6xl mx-auto px-6 text-center">
+        <h2 class="text-4xl md:text-5xl font-bold mb-6">
+          Calculate Your Crypto Investment Returns
+        </h2>
+        <p class="text-xl opacity-90 max-w-3xl mx-auto mb-8">
+          Advanced cryptocurrency ROI calculator with market cap analysis, tokenomics insights, and 1000x growth predictions
+        </p>
+        <div class="flex justify-center space-x-4">
+          <button @click="scrollToCalculator()" class="btn-interactive px-8 py-3 bg-white text-mylo-600 rounded-lg font-semibold hover:bg-gray-100 transition-all">
+            Start Calculating
+          </button>
+          <button @click="showAdvanced = true" class="btn-interactive px-8 py-3 border-2 border-white text-white rounded-lg font-semibold hover:bg-white/10 transition-all">
+            Advanced Mode
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Calculator Section -->
+    <section id="calculator" class="py-20 bg-white/80 dark:bg-gray-900" data-aos="fade-up">
+      <div class="max-w-6xl mx-auto px-6">
+        <div class="text-center mb-12">
+          <h2 class="text-3xl font-bold mb-4 text-mylo-700 dark:text-mylo-300">
+            Investment Return Calculator
+          </h2>
+          <p class="text-gray-700 dark:text-gray-300 max-w-2xl mx-auto">
+            Enter your investment details to calculate potential returns based on market capitalization growth
+          </p>
+        </div>
+
+        <!-- Mode Toggle -->
+        <div class="flex justify-center mb-8">
+          <div class="bg-gray-100 dark:bg-gray-800 rounded-lg p-1 inline-flex">
+            <button 
+              @click="mode = 'basic'"
+              :class="{'bg-mylo-500 text-white': mode === 'basic', 'text-gray-600 dark:text-gray-300': mode !== 'basic'}"
+              class="px-6 py-2 rounded-md font-medium transition-all">
+              Basic Mode
+            </button>
+            <button 
+              @click="mode = 'advanced'"
+              :class="{'bg-accent-500 text-white': mode === 'advanced', 'text-gray-600 dark:text-gray-300': mode !== 'advanced'}"
+              class="px-6 py-2 rounded-md font-medium transition-all">
+              Advanced Mode
+            </button>
+          </div>
+        </div>
+
+        <div class="grid lg:grid-cols-2 gap-8">
+          <!-- Input Section -->
+          <div class="space-y-6">
+            <!-- Basic Inputs -->
+            <div class="card-interactive p-6 bg-white/90 backdrop-blur-sm dark:bg-gray-800 rounded-xl shadow-md">
+              <h3 class="text-xl font-semibold text-mylo-700 dark:text-mylo-300 mb-6 flex items-center">
+                <i data-lucide="calculator" class="w-6 h-6 mr-2"></i>
+                Investment Details
+              </h3>
+              
+              <div class="space-y-4">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Initial Investment ($)
+                  </label>
+                  <input 
+                    type="number" 
+                    x-model="initialInvestment"
+                    @input="calculateReturns()"
+                    class="input-field w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-mylo-500 focus:border-transparent"
+                    placeholder="Enter amount in USD">
+                </div>
+
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Current Market Cap ($)
+                  </label>
+                  <input 
+                    type="number" 
+                    x-model="currentMarketCap"
+                    @input="calculateReturns()"
+                    class="input-field w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-mylo-500 focus:border-transparent"
+                    placeholder="Current market capitalization">
+                </div>
+
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Target Market Cap ($)
+                  </label>
+                  <input 
+                    type="number" 
+                    x-model="targetMarketCap"
+                    @input="calculateReturns()"
+                    class="input-field w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-mylo-500 focus:border-transparent"
+                    placeholder="Target market capitalization">
+                </div>
+              </div>
+            </div>
+
+            <!-- Advanced Inputs -->
+            <div x-show="mode === 'advanced'" x-transition class="card-interactive p-6 bg-white/90 backdrop-blur-sm dark:bg-gray-800 rounded-xl shadow-md">
+              <h3 class="text-xl font-semibold text-accent-700 dark:text-accent-300 mb-6 flex items-center">
+                <i data-lucide="settings" class="w-6 h-6 mr-2"></i>
+                Advanced Tokenomics
+              </h3>
+              
+              <div class="space-y-4">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Total Token Supply
+                  </label>
+                  <input 
+                    type="number" 
+                    x-model="totalSupply"
+                    @input="calculateReturns()"
+                    class="input-field w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-accent-500 focus:border-transparent"
+                    placeholder="Total number of tokens">
+                </div>
+
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Circulating Supply
+                  </label>
+                  <input 
+                    type="number" 
+                    x-model="circulatingSupply"
+                    @input="calculateReturns()"
+                    class="input-field w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-accent-500 focus:border-transparent"
+                    placeholder="Currently circulating tokens">
+                </div>
+
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Expected Demand Growth (%)
+                  </label>
+                  <input 
+                    type="number" 
+                    x-model="demandGrowth"
+                    @input="calculateReturns()"
+                    class="input-field w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-accent-500 focus:border-transparent"
+                    placeholder="Expected percentage increase in demand">
+                </div>
+
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Liquidity Pool Size ($)
+                  </label>
+                  <input 
+                    type="number" 
+                    x-model="liquidityPool"
+                    @input="calculateReturns()"
+                    class="input-field w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-accent-500 focus:border-transparent"
+                    placeholder="Current liquidity pool size">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Results Section -->
+          <div class="space-y-6">
+            <!-- Primary Results -->
+            <div class="card-interactive result-card p-6 rounded-xl shadow-md">
+              <h3 class="text-xl font-semibold text-mylo-700 dark:text-mylo-300 mb-6 flex items-center">
+                <i data-lucide="trending-up" class="w-6 h-6 mr-2"></i>
+                Investment Results
+              </h3>
+              
+              <div class="grid grid-cols-2 gap-4 mb-6">
+                <div class="text-center p-4 bg-white/50 dark:bg-gray-800/50 rounded-lg">
+                  <p class="text-sm text-gray-600 dark:text-gray-400 mb-1">Final Value</p>
+                  <p class="text-2xl font-bold text-mylo-600 dark:text-mylo-400" x-text="'$' + formatNumber(finalValue)">$0</p>
+                </div>
+                <div class="text-center p-4 bg-white/50 dark:bg-gray-800/50 rounded-lg">
+                  <p class="text-sm text-gray-600 dark:text-gray-400 mb-1">Return Multiple</p>
+                  <p class="text-2xl font-bold text-accent-600 dark:text-accent-400" x-text="returnMultiple + 'x'">0x</p>
+                </div>
+              </div>
+
+              <div class="space-y-3">
+                <div class="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-700">
+                  <span class="text-gray-700 dark:text-gray-300">Initial Investment:</span>
+                  <span class="font-semibold" x-text="'$' + formatNumber(initialInvestment)">$0</span>
+                </div>
+                <div class="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-700">
+                  <span class="text-gray-700 dark:text-gray-300">Total Profit:</span>
+                  <span class="font-semibold text-green-600 dark:text-green-400" x-text="'$' + formatNumber(totalProfit)">$0</span>
+                </div>
+                <div class="flex justify-between items-center py-2">
+                  <span class="text-gray-700 dark:text-gray-300">ROI Percentage:</span>
+                  <span class="font-semibold text-primary-600 dark:text-primary-400" x-text="roiPercentage + '%'">0%</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Advanced Results -->
+            <div x-show="mode === 'advanced'" x-transition class="card-interactive p-6 bg-white/90 backdrop-blur-sm dark:bg-gray-800 rounded-xl shadow-md">
+              <h3 class="text-xl font-semibold text-accent-700 dark:text-accent-300 mb-6 flex items-center">
+                <i data-lucide="chart-pie" class="w-6 h-6 mr-2"></i>
+                Tokenomics Analysis
+              </h3>
+              
+              <div class="space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                  <div class="text-center p-3 bg-accent-50/50 dark:bg-accent-900/20 rounded-lg">
+                    <p class="text-xs text-gray-600 dark:text-gray-400 mb-1">Current Price</p>
+                    <p class="text-lg font-semibold text-accent-600 dark:text-accent-400" x-text="'$' + formatNumber(currentPrice)">0</p>
+                  </div>
+                  <div class="text-center p-3 bg-accent-50/50 dark:bg-accent-900/20 rounded-lg">
+                    <p class="text-xs text-gray-600 dark:text-gray-400 mb-1">Target Price</p>
+                    <p class="text-lg font-semibold text-accent-600 dark:text-accent-400" x-text="'$' + formatNumber(targetPrice)">0</p>
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                  <div class="text-center p-3 bg-accent-50/50 dark:bg-accent-900/20 rounded-lg">
+                    <p class="text-xs text-gray-600 dark:text-gray-400 mb-1">Tokens Owned</p>
+                    <p class="text-lg font-semibold text-accent-600 dark:text-accent-400" x-text="formatNumber(tokensOwned)">0</p>
+                  </div>
+                  <div class="text-center p-3 bg-accent-50/50 dark:bg-accent-900/20 rounded-lg">
+                    <p class="text-xs text-gray-600 dark:text-gray-400 mb-1">Ownership %</p>
+                    <p class="text-lg font-semibold text-accent-600 dark:text-accent-400" x-text="ownershipPercentage + '%'">0%</p>
+                  </div>
+                </div>
+
+                <div x-show="liquidityPool > 0" class="p-3 bg-amber-50/50 dark:bg-amber-900/20 rounded-lg">
+                  <p class="text-xs text-gray-600 dark:text-gray-400 mb-1">Estimated Slippage</p>
+                  <p class="text-lg font-semibold text-amber-600 dark:text-amber-400" x-text="estimatedSlippage + '%'">0%</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- 1000x Prediction -->
+            <div class="card-interactive p-6 bg-gradient-to-r from-mylo-50 to-accent-50 dark:from-mylo-900/20 dark:to-accent-900/20 rounded-xl shadow-md">
+              <h3 class="text-xl font-semibold text-mylo-700 dark:text-mylo-300 mb-6 flex items-center">
+                <i data-lucide="rocket" class="w-6 h-6 mr-2"></i>
+                1000x Growth Prediction
+              </h3>
+              
+              <div class="space-y-4">
+                <div class="p-4 bg-white/70 dark:bg-gray-800/70 rounded-lg">
+                  <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">Required Market Cap for 1000x</p>
+                  <p class="text-2xl font-bold text-mylo-600 dark:text-mylo-400" x-text="'$' + formatNumber(requiredMarketCap1000x)">$0</p>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                  <div class="p-3 bg-white/70 dark:bg-gray-800/70 rounded-lg">
+                    <p class="text-xs text-gray-600 dark:text-gray-400 mb-1">Holders Needed</p>
+                    <p class="text-lg font-semibold text-mylo-600 dark:text-mylo-400" x-text="formatNumber(holdersNeeded)">0</p>
+                  </div>
+                  <div class="p-3 bg-white/70 dark:bg-gray-800/70 rounded-lg">
+                    <p class="text-xs text-gray-600 dark:text-gray-400 mb-1">Avg Investment</p>
+                    <p class="text-lg font-semibold text-mylo-600 dark:text-mylo-400" x-text="'$' + formatNumber(avgInvestmentNeeded)">0</p>
+                  </div>
+                </div>
+
+                <div class="p-3 bg-mylo-50/70 dark:bg-mylo-900/30 rounded-lg">
+                  <p class="text-xs text-gray-600 dark:text-gray-400 mb-1">Feasibility Score</p>
+                  <div class="flex items-center space-x-2">
+                    <div class="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                      <div class="gradient-bg h-2 rounded-full" :style="'width: ' + feasibilityScore + '%'"></div>
+                    </div>
+                    <span class="text-sm font-semibold" x-text="feasibilityScore + '%'">0%</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Examples -->
+        <div class="mt-12">
+          <h3 class="text-2xl font-semibold text-mylo-700 dark:text-mylo-300 mb-6 text-center">
+            Quick Calculation Examples
+          </h3>
+          
+          <div class="grid md:grid-cols-3 gap-6">
+            <button @click="loadExample(1)" class="card-interactive p-6 bg-white/90 backdrop-blur-sm dark:bg-gray-800 rounded-xl shadow-md text-left hover:bg-mylo-50 dark:hover:bg-mylo-900/20">
+              <h4 class="font-semibold text-mylo-700 dark:text-mylo-300 mb-2">Pump.fun Example</h4>
+              <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">$1 investment at $5k MC targeting $2M</p>
+              <div class="flex items-center text-mylo-600 dark:text-mylo-400">
+                <i data-lucide="play" class="w-4 h-4 mr-2"></i>
+                <span class="text-sm font-medium">Load Example</span>
+              </div>
+            </button>
+
+            <button @click="loadExample(2)" class="card-interactive p-6 bg-white/90 backdrop-blur-sm dark:bg-gray-800 rounded-xl shadow-md text-left hover:bg-accent-50 dark:hover:bg-accent-900/20">
+              <h4 class="font-semibold text-accent-700 dark:text-accent-300 mb-2">Mid-Cap Growth</h4>
+              <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">$100 investment at $1M MC targeting $100M</p>
+              <div class="flex items-center text-accent-600 dark:text-accent-400">
+                <i data-lucide="play" class="w-4 h-4 mr-2"></i>
+                <span class="text-sm font-medium">Load Example</span>
+              </div>
+            </button>
+
+            <button @click="loadExample(3)" class="card-interactive p-6 bg-white/90 backdrop-blur-sm dark:bg-gray-800 rounded-xl shadow-md text-left hover:bg-mylo-50 dark:hover:bg-mylo-900/20">
+              <h4 class="font-semibold text-mylo-700 dark:text-mylo-300 mb-2">Large Cap Scenario</h4>
+              <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">$1000 investment at $100M MC targeting $1B</p>
+              <div class="flex items-center text-mylo-600 dark:text-mylo-400">
+                <i data-lucide="play" class="w-4 h-4 mr-2"></i>
+                <span class="text-sm font-medium">Load Example</span>
+              </div>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="py-20 bg-mylo-50/50 dark:bg-gray-800" data-aos="fade-up">
+      <div class="max-w-6xl mx-auto px-6">
+        <div class="text-center mb-12">
+          <h2 class="text-3xl font-bold mb-4 text-mylo-700 dark:text-mylo-300">
+            Calculator Features
+          </h2>
+          <p class="text-gray-700 dark:text-gray-300 max-w-2xl mx-auto">
+            Comprehensive tools for cryptocurrency investment analysis and planning
+          </p>
+        </div>
+
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div class="card-interactive p-6 bg-white/90 backdrop-blur-sm dark:bg-gray-900 rounded-xl shadow-md">
+            <div class="w-12 h-12 bg-mylo-100 dark:bg-mylo-900/30 rounded-lg flex items-center justify-center mb-4">
+              <i data-lucide="calculator" class="w-6 h-6 text-mylo-600 dark:text-mylo-400"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-mylo-700 dark:text-mylo-300 mb-2">Basic ROI Calculation</h3>
+            <p class="text-gray-700 dark:text-gray-300 text-sm">
+              Simple market cap-based return calculations with instant results and multiple viewing options
+            </p>
+          </div>
+
+          <div class="card-interactive p-6 bg-white/90 backdrop-blur-sm dark:bg-gray-900 rounded-xl shadow-md">
+            <div class="w-12 h-12 bg-accent-100 dark:bg-accent-900/30 rounded-lg flex items-center justify-center mb-4">
+              <i data-lucide="settings" class="w-6 h-6 text-accent-600 dark:text-accent-400"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-accent-700 dark:text-accent-300 mb-2">Advanced Tokenomics</h3>
+            <p class="text-gray-700 dark:text-gray-300 text-sm">
+              Detailed analysis including supply dynamics, demand projections, and liquidity considerations
+            </p>
+          </div>
+
+          <div class="card-interactive p-6 bg-white/90 backdrop-blur-sm dark:bg-gray-900 rounded-xl shadow-md">
+            <div class="w-12 h-12 bg-mylo-100 dark:bg-mylo-900/30 rounded-lg flex items-center justify-center mb-4">
+              <i data-lucide="rocket" class="w-6 h-6 text-mylo-600 dark:text-mylo-400"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-mylo-700 dark:text-mylo-300 mb-2">1000x Predictions</h3>
+            <p class="text-gray-700 dark:text-gray-300 text-sm">
+              Growth scenario modeling with holder requirements and feasibility assessments
+            </p>
+          </div>
+
+          <div class="card-interactive p-6 bg-white/90 backdrop-blur-sm dark:bg-gray-900 rounded-xl shadow-md">
+            <div class="w-12 h-12 bg-accent-100 dark:bg-accent-900/30 rounded-lg flex items-center justify-center mb-4">
+              <i data-lucide="chart-line" class="w-6 h-6 text-accent-600 dark:text-accent-400"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-accent-700 dark:text-accent-300 mb-2">Real-time Updates</h3>
+            <p class="text-gray-700 dark:text-gray-300 text-sm">
+              Instant calculation updates as you modify input parameters for dynamic analysis
+            </p>
+          </div>
+
+          <div class="card-interactive p-6 bg-white/90 backdrop-blur-sm dark:bg-gray-900 rounded-xl shadow-md">
+            <div class="w-12 h-12 bg-mylo-100 dark:bg-mylo-900/30 rounded-lg flex items-center justify-center mb-4">
+              <i data-lucide="zap" class="w-6 h-6 text-mylo-600 dark:text-mylo-400"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-mylo-700 dark:text-mylo-300 mb-2">Quick Examples</h3>
+            <p class="text-gray-700 dark:text-gray-300 text-sm">
+              Pre-loaded scenarios for common investment situations and learning purposes
+            </p>
+          </div>
+
+          <div class="card-interactive p-6 bg-white/90 backdrop-blur-sm dark:bg-gray-900 rounded-xl shadow-md">
+            <div class="w-12 h-12 bg-accent-100 dark:bg-accent-900/30 rounded-lg flex items-center justify-center mb-4">
+              <i data-lucide="shield" class="w-6 h-6 text-accent-600 dark:text-accent-400"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-accent-700 dark:text-accent-300 mb-2">Risk Assessment</h3>
+            <p class="text-gray-700 dark:text-gray-300 text-sm">
+              Built-in risk indicators and feasibility scoring for informed decision making
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- How to Use Section -->
+    <section class="py-20 bg-white/80 dark:bg-gray-900" data-aos="fade-up">
+      <div class="max-w-6xl mx-auto px-6">
+        <div class="text-center mb-12">
+          <h2 class="text-3xl font-bold mb-4 text-mylo-700 dark:text-mylo-300">
+            How to Use the Calculator
+          </h2>
+          <p class="text-gray-700 dark:text-gray-300 max-w-2xl mx-auto">
+            Step-by-step guide to get the most accurate results from your investment analysis
+          </p>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-8">
+          <div class="space-y-6">
+            <h3 class="text-xl font-semibold text-mylo-700 dark:text-mylo-300">Basic Mode Instructions</h3>
+            
+            <div class="space-y-4">
+              <div class="flex items-start space-x-4">
+                <div class="flex-shrink-0 w-8 h-8 bg-mylo-100 dark:bg-mylo-900/30 rounded-full flex items-center justify-center">
+                  <span class="text-mylo-600 dark:text-mylo-400 font-semibold">1</span>
+                </div>
+                <div>
+                  <h4 class="font-semibold text-gray-900 dark:text-gray-100 mb-1">Enter Investment Amount</h4>
+                  <p class="text-sm text-gray-700 dark:text-gray-300">Input the USD amount you plan to invest in the cryptocurrency</p>
+                </div>
+              </div>
+
+              <div class="flex items-start space-x-4">
+                <div class="flex-shrink-0 w-8 h-8 bg-mylo-100 dark:bg-mylo-900/30 rounded-full flex items-center justify-center">
+                  <span class="text-mylo-600 dark:text-mylo-400 font-semibold">2</span>
+                </div>
+                <div>
+                  <h4 class="font-semibold text-gray-900 dark:text-gray-100 mb-1">Set Current Market Cap</h4>
+                  <p class="text-sm text-gray-700 dark:text-gray-300">Enter the current total market capitalization of the token</p>
+                </div>
+              </div>
+
+              <div class="flex items-start space-x-4">
+                <div class="flex-shrink-0 w-8 h-8 bg-mylo-100 dark:bg-mylo-900/30 rounded-full flex items-center justify-center">
+                  <span class="text-mylo-600 dark:text-mylo-400 font-semibold">3</span>
+                </div>
+                <div>
+                  <h4 class="font-semibold text-gray-900 dark:text-gray-100 mb-1">Define Target Market Cap</h4>
+                  <p class="text-sm text-gray-700 dark:text-gray-300">Specify your target market capitalization for the projection</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="space-y-6">
+            <h3 class="text-xl font-semibold text-accent-700 dark:text-accent-300">Advanced Mode Features</h3>
+            
+            <div class="space-y-4">
+              <div class="flex items-start space-x-4">
+                <div class="flex-shrink-0 w-8 h-8 bg-accent-100 dark:bg-accent-900/30 rounded-full flex items-center justify-center">
+                  <i data-lucide="coins" class="w-4 h-4 text-accent-600 dark:text-accent-400"></i>
+                </div>
+                <div>
+                  <h4 class="font-semibold text-gray-900 dark:text-gray-100 mb-1">Token Supply Analysis</h4>
+                  <p class="text-sm text-gray-700 dark:text-gray-300">Include total and circulating supply for price per token calculations</p>
+                </div>
+              </div>
+
+              <div class="flex items-start space-x-4">
+                <div class="flex-shrink-0 w-8 h-8 bg-accent-100 dark:bg-accent-900/30 rounded-full flex items-center justify-center">
+                  <i data-lucide="trending-up" class="w-4 h-4 text-accent-600 dark:text-accent-400"></i>
+                </div>
+                <div>
+                  <h4 class="font-semibold text-gray-900 dark:text-gray-100 mb-1">Demand Projections</h4>
+                  <p class="text-sm text-gray-700 dark:text-gray-300">Factor in expected demand growth for more realistic scenarios</p>
+                </div>
+              </div>
+
+              <div class="flex items-start space-x-4">
+                <div class="flex-shrink-0 w-8 h-8 bg-accent-100 dark:bg-accent-900/30 rounded-full flex items-center justify-center">
+                  <i data-lucide="droplet" class="w-4 h-4 text-accent-600 dark:text-accent-400"></i>
+                </div>
+                <div>
+                  <h4 class="font-semibold text-gray-900 dark:text-gray-100 mb-1">Liquidity Impact</h4>
+                  <p class="text-sm text-gray-700 dark:text-gray-300">Consider liquidity pool size for slippage estimation</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-mylo-700 dark:bg-gray-950 text-white py-12">
+    <div class="max-w-6xl mx-auto px-6">
+      <div class="grid md:grid-cols-3 gap-8 mb-8">
+        <div>
+          <div class="flex items-center space-x-3 mb-4">
+            <div class="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
+              <span class="text-white font-bold">M</span>
+            </div>
+            <h3 class="text-xl font-bold">Powered by MyLo</h3>
+          </div>
+          <p class="text-mylo-100 dark:text-gray-300 text-sm">
+            Advanced cryptocurrency investment calculator for informed decision making and portfolio planning.
+          </p>
+        </div>
+        <div>
+          <h3 class="text-xl font-bold mb-4">Key Features</h3>
+          <ul class="space-y-2 text-mylo-100 dark:text-gray-300 text-sm">
+            <li>Market Cap ROI Calculations</li>
+            <li>Advanced Tokenomics Analysis</li>
+            <li>1000x Growth Predictions</li>
+            <li>Risk Assessment Tools</li>
+          </ul>
+        </div>
+        <div>
+          <h3 class="text-xl font-bold mb-4">Disclaimer</h3>
+          <p class="text-mylo-100 dark:text-gray-300 text-sm">
+            This calculator is for educational purposes only. Cryptocurrency investments carry significant risk. Always conduct thorough research and consult financial advisors before investing.
+          </p>
+        </div>
+      </div>
+      <div class="border-t border-mylo-600 dark:border-gray-800 pt-8 text-center">
+        <p class="text-mylo-100 dark:text-gray-400 text-sm">
+          © 2024 MyLo Crypto ROI Calculator | Powered by MyLo Ecosystem
+        </p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Application Logic -->
+  <script src="app.js"></script>
+</body>
+</html>
